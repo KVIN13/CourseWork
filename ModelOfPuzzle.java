@@ -27,7 +27,7 @@ class ModelOfPuzzle {
      return _contents[row][col].getValue();
  }
 
- public void reset() {
+ /* public void reset() {
      for (int row=0; row<ROWS; row++) {
          for (int col=0; col<COLS; col++) {
              _contents[row][col] = new Rect(row, col, "" + (row*COLS+col+1));
@@ -42,9 +42,9 @@ class ModelOfPuzzle {
                                , (int)(Math.random()*COLS));
          }
      }
- }
+ }*/
  
-/* public void reset() {
+ public void reset() {
      for (int row=0; row<ROWS; row++) {
          for (int col=0; col<COLS; col++) {
              _contents[row][col] = new Rect(row, col, "" + (row*COLS+col+1));
@@ -52,7 +52,7 @@ class ModelOfPuzzle {
      }
      _freeRect = _contents[ROWS-1][COLS-1];
      _freeRect.setValue(null);
- }*/
+ }
  public boolean moveRect(int r, int c) {
      return checkFree(r, c, -1, 0) || checkFree(r, c, 1, 0)
          || checkFree(r, c, 0, -1) || checkFree(r, c, 0, 1);

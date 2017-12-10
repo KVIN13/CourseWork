@@ -3,6 +3,10 @@
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
@@ -18,7 +22,22 @@ class GameGUI extends JPanel {
  public final DecimalFormat dc = new DecimalFormat("00");
 
  public GameGUI() {
-
+	 try(FileReader reader = new FileReader("time.txt"))
+     {
+		 BufferedReader br = new BufferedReader(reader);
+		 String str = br.readLine();
+		 str = br.readLine();
+		 while (str != null)  {
+			 	OpenTime.players.add(str);
+	            str = br.readLine();
+	        }
+		 	reader.close();
+	        br.close();
+     }
+     catch(IOException ex){
+          
+         System.out.println(ex.getMessage());
+     } 
      JButton newGameBut = new JButton("Новая игра");
      newGameBut.addActionListener(new StartNewGame());
      JLabel time = new JLabel();
@@ -138,29 +157,49 @@ class GameGUI extends JPanel {
 		 });
 		 JPanel pan = new JPanel();
 		 pan.setPreferredSize(new Dimension(200,200));
-		 JLabel finish = new JLabel("Congratulation. Your time - "+dc.format(minute) + ":" + dc.format(second)+" Enter your name");
+		 JLabel finish = new JLabel("Congratulation. Your time - "+dc.format(minute) + ":" + dc.format(second-1)+" Enter your name");
 		 JTextField name = new JTextField(15);
 		 name.addActionListener(new ActionListener() {
 	            public void actionPerformed(ActionEvent e) {
 	            	if(OpenTime.players.isEmpty()){
-	            	OpenTime.players.add(name.getText() + " "+dc.format(minute) + ":" + dc.format(second));
+	            	OpenTime.players.add(name.getText() + " "+dc.format(minute) + ":" + dc.format(second-1));
 	            }else{ boolean added = false;
 	            	for (int i=0; i < OpenTime.players.size();i++){
-	            	String str = OpenTime.players.get(i);
-	            	String [] p = str.split(" ");
-	            	String [] pp = p[1].split("\\D");
-	            	int sec = (Integer.parseInt(pp[0])*60)+Integer.parseInt(pp[1]);
-	            	int tmp = (minute*60)+second;
-	            	if(sec <= tmp){
-	            		OpenTime.players.add(i, name.getText() + " "+dc.format(minute) + ":" + dc.format(second));
-	            		System.out.println("L="+OpenTime.players.size());
-	            		added = true;
-	            		break;
+	            		String str = OpenTime.players.get(i);
+	            		String [] p = str.split(" ");
+	            		String [] pp = p[1].split("\\D");
+	            		int sec = (Integer.parseInt(pp[0])*60)+Integer.parseInt(pp[1]);
+	            		int tmp = (minute*60)+second;
+	            		if(sec >= tmp){
+	            			OpenTime.players.add(i, name.getText() + " "+dc.format(minute) + ":" + dc.format(second-1));
+	            			added = true;
+	            			break;
 	            	}
-	            }if (!added){OpenTime.players.add(name.getText() + " "+dc.format(minute) + ":" + dc.format(second));}} 
+	            	}if (!added){OpenTime.players.add(name.getText() + " "+dc.format(minute) + ":" + dc.format(second-1));}} 
 	            	
-	            	}
-	        });
+	            	 if(!OpenTime.players.isEmpty()){ 
+	            			try {
+	            				String result = ""; 
+	            				String str;
+	            				FileWriter	fw = new FileWriter("time.txt");
+	            				if(OpenTime.players.size() > 5){
+	            					for (int i=0; i<5;i++){
+	            			    		 str = OpenTime.players.get(i);
+	            			    		 result += "\n"+ str;  }
+	            				}else{
+	            			    	 for (int i=0; i<OpenTime.players.size();i++){
+	            			    		 str = OpenTime.players.get(i);
+	            			    		 result += "\n"+ str;   
+	            			    	 }}
+	            			    	 fw.write(result);
+	            				fw.close();
+	            			} catch (IOException e1) {
+	            				// TODO Auto-generated catch block
+	            				e1.printStackTrace();
+	            			}	
+	            }
+	            	 dispose();GameIn15.window.setVisible(true);   }  });
+	        
 		 add(pan);
 		 pan.setLayout(new FlowLayout());
 		 pan.add(finish);
@@ -169,29 +208,31 @@ class GameGUI extends JPanel {
  }
  public static class OpenTime extends JFrame implements ActionListener {
 	 //TODO Make non-static!
-	 static final ArrayList<String> players = new ArrayList<>();
+	 final static ArrayList<String> players = new ArrayList<>();
+	 DefaultListModel listModel = new DefaultListModel();
+	 JList tbl = new JList(listModel);
 	 public OpenTime(){
 		 this.setLayout(new FlowLayout());
-	 }
-     public void actionPerformed(ActionEvent e) {
-    	 JPanel pn = new JPanel();
+		 JPanel pn = new JPanel();
     	 this.add(pn);
     	 pn.setLayout(new FlowLayout());
-    	 DefaultListModel listModel = new DefaultListModel();
-    	 if(!players.isEmpty()){
-    	 for (int i=0; i<players.size();i++){
-    		 listModel.addElement(players.get(i));
-    	 }}
-    	 JList tbl = new JList(listModel);
-    	// tbl.setFocusable(false);
     	 tbl.setLayoutOrientation(JList.VERTICAL);
     	 tbl.setVisibleRowCount(5);
     	 pn.add(tbl);
-    	// tbl.revalidate();
-    	// tbl.repaint();
     	 pn.add(new JScrollPane(tbl));
-    	// tbl.updateUI();
-    	// pn.updateUI();
+    	 
+	 }
+     public void actionPerformed(ActionEvent e) {
+    	 listModel.removeAllElements();
+    	 if(!players.isEmpty()){
+    		 if (players.size()<5){
+    			 for (int i=0; i<players.size();i++){
+    				 listModel.addElement(players.get(i));
+    	 }
+    			 }
+    		 	else{for (int i=0; i<5;i++){
+    		 		listModel.addElement(players.get(i));
+    	 }}}
     	 setPreferredSize(new Dimension(100, 150));
     	 setVisible(true);  
     	 pack();
